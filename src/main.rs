@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate futures;
 extern crate hyper;
 extern crate serde;
@@ -7,10 +8,12 @@ extern crate url;
 mod schedule;
 mod serve;
 
+use chrono::{Datelike, Timelike};
 use hyper::rt::Future;
-use hyper::{Body, Response, Server};
+use hyper::{Body, Client, Response, Server};
 use schedule::*;
-use serve::ScheduleService;
+use std::str::FromStr;
+use std::sync::{Arc, Mutex};
 
 static DAY_NAMES: [&str; 7] = [
     "Monday",
@@ -73,16 +76,60 @@ fn main() {
             panic!()
         }
     };
-    let new_service = move || {
-        futures::future::ok::<ScheduleService, hyper::Error>(ScheduleService::new(
-            &schedules,
-            String::from(filename.as_str()),
-        ))
-    };
-    let addr = std::net::Ipv4Addr::UNSPECIFIED;
-    let addr = (addr.octets(), port).into();
-    let server = Server::bind(&addr)
-        .serve(new_service)
-        .map_err(|e| eprintln!("Server Error: {}", e));
-    hyper::rt::run(server);
+    let schedules = Arc::new(Mutex::new(schedules));
+    let background = Arc::clone(&schedules);
+    let jh = std::thread::Builder::new()
+        .name("Requestor Thread".into())
+        .spawn(move || {
+            let background = Arc::clone(&background);
+            let client = Arc::from(Client::new());
+            let mut waiting = false;
+            let mut old_time = chrono::Local::now();
+            loop {
+                let scheds = background.lock().unwrap();
+                let curr_time = chrono::Local::now();
+                let mut fired = false;
+                if !waiting {
+                    for sched in scheds.to_vec() {
+                        let day = sched.days[curr_time.weekday().num_days_from_monday() as usize];
+                        if curr_time.hour() == day.hour
+                            && curr_time.minute() == day.minute
+                            && day.enable
+                        {
+                            fired |= true;
+                            let client = Arc::clone(&client);
+                            hyper::rt::run(futures::future::lazy(move || {
+                                client
+                                    .get(hyper::Uri::from_str(&sched.dest).unwrap())
+                                    .map(|_res| {})
+                                    .map_err(|err| eprintln!("Requestor Error: {}", err))
+                            }))
+                        }
+                    }
+                }
+                if fired {
+                    old_time = chrono::Local::now();
+                    waiting = true;
+                } else if old_time.minute() != chrono::Local::now().minute() {
+                    waiting = false;
+                }
+            }
+        })
+        .unwrap();
+    hyper::rt::run(futures::future::lazy(move || {
+        let new_service = move || {
+            let schedules = schedules.clone();
+            let filename = filename.clone();
+            hyper::service::service_fn(move |req| {
+                serve::web(req, schedules.clone(), filename.clone())
+            })
+        };
+        let addr = std::net::Ipv4Addr::UNSPECIFIED;
+        let addr = (addr.octets(), port).into();
+        let server = Server::bind(&addr)
+            .serve(new_service)
+            .map_err(|e| eprintln!("Server Error: {}", e));
+        server
+    }));
+    let _joined = jh.join();
 }

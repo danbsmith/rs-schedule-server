@@ -1,4 +1,5 @@
 use crate::schedule::{DayInfo, Schedule};
+use chrono::{Local, Timelike};
 
 pub fn gen_main_page(schedules: &Vec<Schedule>) -> String {
     let s = format!("<h1>Hello, Schedule Server</h1><div>Available Schedules:<br>{}</div><div><a href=/newsched/>New Schedule</a></div>", sched_links(schedules));
@@ -21,7 +22,8 @@ pub fn gen_sched_page(schedule: &Schedule) -> String {
     let friday = sched_form(&schedule.days[4], 4);
     let saturday = sched_form(&schedule.days[5], 5);
     let sunday = sched_form(&schedule.days[6], 6);
-    let s = format!("<h1>Hello, {0} Editing Page</h1><p>The system time is %d:%d</p><div><form action=\"/schedit/update/{0}/\" method=post>{1}{2}{3}{4}{5}{6}{7}<input type=\"submit\" value=\"Update\"></form></div>", schedule.name,monday,tuesday, wednesday, thursday, friday, saturday, sunday);
+    let curr_time = Local::now();
+    let s = format!("<h1>Hello, {0} Editing Page</h1><p>The system time is {8}:{9}</p><div><form action=\"/schedit/update/{0}/\" method=post>{1}{2}{3}{4}{5}{6}{7}<input type=\"submit\" value=\"Update\"></form></div><br><br><div><form action=\"/delete/{0}/\" method=\"post\"><input type=\"submit\" value=\"Delete this schedule\"></form></div>", schedule.name, monday, tuesday, wednesday, thursday, friday, saturday, sunday, curr_time.hour(), curr_time.minute());
     s
 }
 
