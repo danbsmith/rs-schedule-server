@@ -29,7 +29,7 @@ type BoxFut = Box<Future<Item = Response<Body>, Error = hyper::Error> + Send>;
 
 fn main() {
     let mut port = 5104;
-    let snap_common_path = match std::env::var("SNAP_COMMON") {
+    let snap_common_path = match std::env::var("SNAP_USER_COMMON") {
         Ok(v) => std::path::PathBuf::from(v),
         Err(_) => std::path::PathBuf::from(""),
     };
