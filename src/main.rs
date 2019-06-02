@@ -81,7 +81,6 @@ fn main() {
     let request_thread = std::thread::Builder::new()
         .name("Requestor Thread".into())
         .spawn(move || {
-            let background = Arc::clone(&background);
             let client = Arc::from(Client::new());
             let mut waiting = false;
             let mut old_time = chrono::Local::now();
