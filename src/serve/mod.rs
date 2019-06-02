@@ -21,21 +21,21 @@ pub fn web(
                 schedules.lock().unwrap().as_ref(),
             )));
         }
-        (&hyper::Method::GET, s) => {
+        (&hyper::Method::GET, uri_path) => {
             for sched in schedules.lock().unwrap().to_vec() {
-                if format!("/sched/{}/", sched.name).eq(s) {
+                if format!("/sched/{}/", sched.name).eq(uri_path) {
                     *builder.status_mut() = hyper::StatusCode::OK;
                     *builder.body_mut() = Body::from(String::from(gen_sched_page(&sched)));
                 }
             }
-            if s.eq("/newsched/") {
+            if uri_path.eq("/newsched/") {
                 *builder.status_mut() = hyper::StatusCode::OK;
                 *builder.body_mut() = Body::from("<h1>Hello, New Schedule</h1>
                 Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>");
             }
         }
-        (&hyper::Method::POST, s) => {
-            if s.eq("/newsched/") {
+        (&hyper::Method::POST, uri_path) => {
+            if uri_path.eq("/newsched/") {
                 let result = Box::new(req.into_body()
                     .concat2()
                     .map(move |b| {
@@ -59,7 +59,7 @@ pub fn web(
                 {
                     let schedules = &schedules.lock().unwrap();
                     for v in 0..schedules.to_vec().len() {
-                        if format!("/schedit/update/{}/", schedules.to_vec()[v].name).eq(s) {
+                        if format!("/schedit/update/{}/", schedules.to_vec()[v].name).eq(uri_path) {
                             selected = Some(v);
                         }
                     }
@@ -100,7 +100,7 @@ pub fn web(
                         {
                             let schedules = &schedules.lock().unwrap();
                             for v in 0..schedules.to_vec().len() {
-                                if format!("/delete/{}/", schedules.to_vec()[v].name).eq(s) {
+                                if format!("/delete/{}/", schedules.to_vec()[v].name).eq(uri_path) {
                                     selected = Some(v);
                                 }
                             }

@@ -78,7 +78,7 @@ fn main() {
     };
     let schedules = Arc::new(Mutex::new(schedules));
     let background = Arc::clone(&schedules);
-    let jh = std::thread::Builder::new()
+    let request_thread = std::thread::Builder::new()
         .name("Requestor Thread".into())
         .spawn(move || {
             let background = Arc::clone(&background);
@@ -131,5 +131,5 @@ fn main() {
             .map_err(|e| eprintln!("Server Error: {}", e));
         server
     }));
-    let _joined = jh.join();
+    let _joined = request_thread.join();
 }
