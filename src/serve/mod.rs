@@ -5,7 +5,7 @@ use crate::schedule::*;
 use crate::BoxFut;
 use futures::{Future, Stream};
 use html_gen::*;
-use hyper::{Body, Request, Response};
+use hyper::{Body, Request, Response, StatusCode};
 use std::collections::HashMap;
 use url::form_urlencoded;
 
@@ -14,24 +14,18 @@ pub fn web(
     schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
     filepath: String,
 ) -> BoxFut {
-    let mut builder = Response::new(Body::empty());
     match (req.method(), req.uri().path()) {
         (&hyper::Method::GET, "/index/") => {
-            *builder.status_mut() = hyper::StatusCode::OK;
-            *builder.body_mut() = Body::from(String::from(gen_main_page(
-                schedules.lock().unwrap().as_ref(),
-            )));
+            return gen_main_page(schedules.lock().unwrap().as_ref());
         }
         (&hyper::Method::GET, uri_path) => {
             for sched in schedules.lock().unwrap().to_vec() {
                 if format!("/sched/{}/", sched.name).eq(uri_path) {
-                    *builder.status_mut() = hyper::StatusCode::OK;
-                    *builder.body_mut() = Body::from(String::from(gen_sched_page(&sched)));
+                    return gen_sched_page(&sched);
                 }
             }
             if uri_path.eq("/newsched/") {
-                *builder.status_mut() = hyper::StatusCode::OK;
-                *builder.body_mut() = Body::from(gen_new_page());
+                return gen_new_page();
             }
         }
         (&hyper::Method::POST, uri_path) => {
@@ -94,11 +88,9 @@ pub fn web(
                                 schedules.remove(selected);
                                 let tmp: &std::vec::Vec<Schedule> = schedules.as_ref();
                                 write_schedules(&filepath, tmp);
-                                return Box::new(futures::future::ok(
-                                    Response::builder().status(hyper::StatusCode::NO_CONTENT).body(Body::from("<h1>Deleted schedule</h1><br><a href=\"/index/\">Go back to main page</a>")).unwrap()
-                                ));
+                                return html_future_ok(String::from("<h1>Deleted schedule</h1><br><a href=\"/index/\">Go back to main page</a>"), StatusCode::NO_CONTENT);
                             } else {
-                                return Box::new(futures::future::ok(Response::builder().status(hyper::StatusCode::NOT_FOUND).body(Body::from("<h1>No such schedule</h1><p>The schedule you tried to access doesn't exist.  Were you messing with the query?</p><br><a href=\"/index/\">Click here to go back to the main page</a>")).unwrap()));
+                                return html_future_ok(String::from("<h1>No such schedule</h1><p>The schedule you tried to access doesn't exist.  Were you messing with the query?</p><br><a href=\"/index/\">Click here to go back to the main page</a>"), StatusCode::NOT_FOUND);
                             }
                         }
                     }
@@ -106,8 +98,8 @@ pub fn web(
             }
         }
         _ => {
-            *builder.status_mut() = hyper::StatusCode::NOT_FOUND;
+        return html_future_ok(String::from(""), StatusCode::NOT_FOUND);
         }
     }
-    Box::new(futures::future::ok(builder))
+html_future_ok(String::from(""), StatusCode::INTERNAL_SERVER_ERROR)
 }
