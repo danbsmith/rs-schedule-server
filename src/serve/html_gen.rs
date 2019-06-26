@@ -6,6 +6,10 @@ pub fn gen_main_page(schedules: &Vec<Schedule>) -> String {
     s
 }
 
+pub fn gen_new_page() -> String {
+    String::from("<h1>Hello, New Schedule</h1>Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>")
+}
+
 pub fn sched_links(schedules: &Vec<Schedule>) -> String {
     let mut real_lines = String::new();
     for s in schedules {

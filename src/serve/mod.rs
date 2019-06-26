@@ -30,8 +30,7 @@ pub fn web(
             }
             if uri_path.eq("/newsched/") {
                 *builder.status_mut() = hyper::StatusCode::OK;
-                *builder.body_mut() = Body::from("<h1>Hello, New Schedule</h1>
-                Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>");
+                *builder.body_mut() = Body::from(gen_new_page());
             }
         }
         (&hyper::Method::POST, uri_path) => {
