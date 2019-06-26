@@ -12,11 +12,11 @@ pub fn gen_new_page() -> BoxFut {
 }
 
 pub fn sched_links(schedules: &Vec<Schedule>) -> String {
-    let mut real_lines = String::new();
+    let mut lines = String::new();
     for s in schedules {
-        real_lines = real_lines + &format!("<a href=/sched/{}/>{}</a><br>", s.name, s.name);
+        lines = lines + &format!("<a href=/sched/{}/>{}</a><br>", s.name, s.name);
     }
-    real_lines
+    lines
 }
 
 pub fn gen_sched_page(schedule: &Schedule) -> BoxFut {
