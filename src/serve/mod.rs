@@ -1,4 +1,5 @@
 mod html_gen;
+mod actions;
 
 use crate::schedule::*;
 use crate::BoxFut;
@@ -35,24 +36,7 @@ pub fn web(
         }
         (&hyper::Method::POST, uri_path) => {
             if uri_path.eq("/newsched/") {
-                let result = Box::new(req.into_body()
-                    .concat2()
-                    .map(move |b| {
-                        let query = form_urlencoded::parse(b.as_ref()).into_owned().collect::<HashMap<String, String>>();
-                        let (name_field, uri_field) = match (query.get("name"), query.get("url")) {
-                            (Some(nf),Some(uf)) => (nf,uf),
-                            _ => return Response::builder().status(hyper::StatusCode::BAD_REQUEST).body(Body::from("<h1>Could not create new schedule.<h1><br><a href=\"/index/\">Go back to main page</a>")).unwrap()
-                        };
-                        let schedules = &mut schedules.lock().unwrap();
-                        {
-                            let schedules: &mut std::vec::Vec<Schedule> = schedules.as_mut();
-                            schedules.push(Schedule::new(uri_field.to_string(), name_field.to_string()));
-                            write_schedules(&filepath, schedules);
-                        }
-                        let new_name = String::from(schedules[0].name.as_str());
-                        Response::builder().status(hyper::StatusCode::CREATED).body(Body::from(format!("<h1>Created new schedule</h1><p>Its name is {}</p><br><a href=\"/index/\">Go back to main page</a>", new_name))).unwrap()
-                }));
-                return result;
+                return actions::create_new_sched(req, schedules, filepath);
             } else {
                 let mut selected = None;
                 {
