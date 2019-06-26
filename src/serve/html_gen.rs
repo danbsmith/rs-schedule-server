@@ -11,7 +11,7 @@ pub fn gen_new_page() -> BoxFut {
     html_future_ok(String::from("<h1>Hello, New Schedule</h1>Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>"), hyper::StatusCode::OK)
 }
 
-pub fn sched_links(schedules: &Vec<Schedule>) -> String {
+fn sched_links(schedules: &Vec<Schedule>) -> String {
     let mut lines = String::new();
     for s in schedules {
         lines = lines + &format!("<a href=/sched/{}/>{}</a><br>", s.name, s.name);
@@ -32,7 +32,7 @@ pub fn gen_sched_page(schedule: &Schedule) -> BoxFut {
     html_future_ok(s, hyper::StatusCode::OK)
 }
 
-pub fn sched_form(day: &DayInfo, day_num: u32) -> String {
+fn sched_form(day: &DayInfo, day_num: u32) -> String {
     let mut check = "";
     if day.enable {
         check = " checked";
