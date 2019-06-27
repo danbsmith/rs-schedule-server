@@ -27,9 +27,9 @@ pub fn create_new_sched(req: hyper::Request<hyper::Body>,
             }
             let new_name = String::from(schedules[0].name.as_str());
             hyper::Response::builder()
-            .status(hyper::StatusCode::CREATED)
-            .body(hyper::Body::from(format!("<h1>Created new schedule</h1><p>Its name is {}</p><br><a href=\"/index/\">Go back to main page</a>",
-             new_name)))
-            .unwrap()
+                .status(hyper::StatusCode::CREATED)
+                .body(hyper::Body::from(format!("<h1>Created new schedule</h1><p>Its name is {}</p><br><a href=\"/index/\">Go back to main page</a>",
+                    new_name)))
+                .unwrap()
     }))
 }
