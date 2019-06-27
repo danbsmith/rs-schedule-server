@@ -5,7 +5,7 @@ use crate::schedule::*;
 use crate::BoxFut;
 use futures::{Future, Stream};
 use html_gen::*;
-use hyper::{Body, Request, Response, StatusCode};
+use hyper::{Body, Request, StatusCode};
 use std::collections::HashMap;
 use url::form_urlencoded;
 
