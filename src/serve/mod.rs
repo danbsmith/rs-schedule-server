@@ -103,3 +103,11 @@ pub fn web(
     }
 html_future_ok(String::from(""), StatusCode::INTERNAL_SERVER_ERROR)
 }
+
+fn select_sched<'a>(name: &str, schedules: &'a mut Vec<Schedule>) -> Option<&'a mut  Schedule> {
+    schedules.iter_mut().filter(|s|{s.name.eq(name)}).next()
+}
+
+fn index_sched(name: &str, schedules: &Vec<Schedule>) -> Option<usize> {
+    schedules.iter().position(|s| {s.name == name})
+}
