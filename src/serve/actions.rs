@@ -11,16 +11,20 @@ pub fn create_new_sched(req: hyper::Body,
                         filepath: String) -> BoxFut {
     Box::new(req.concat2()
         .map(move |b| {
+            let blank = String::from("");
             let query = form_urlencoded::parse(b.as_ref())
                 .into_owned()
                 .collect::<std::collections::HashMap<String, String>>();
             let (name_field, uri_field) = match (query.get("name"), query.get("url")) {
                 (Some(nf),Some(uf)) => (nf,uf),
-                _ => return hyper::Response::builder()
-                    .status(hyper::StatusCode::BAD_REQUEST)
-                    .body(hyper::Body::from("<h1>Could not create new schedule.<h1><br><a href=\"/index/\">Go back to main page</a>"))
-                    .unwrap()
+                _ => (&blank, &blank)
             };
+            if!is_safe_string(&name_field) || !is_safe_string(&uri_field) {
+                return hyper::Response::builder()
+                    .status(hyper::StatusCode::BAD_REQUEST)
+                    .body(hyper::Body::from("<h1>Could not create new schedule.</h1><br><a href=\"/index/\">Go back to main page</a>"))
+                    .unwrap();
+            }
             let schedules = &mut schedules.lock().unwrap();
             {
                 let schedules: &mut std::vec::Vec<Schedule> = schedules.as_mut();
@@ -40,6 +44,12 @@ pub fn edit_sched(req: hyper::Body,
                   sched_name: &str,
                   schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
                   filepath: String) -> BoxFut {
+    if !is_safe_string(&String::from(sched_name)) {
+        return Box::new(futures::future::ok(hyper::Response::builder()
+            .status(hyper::StatusCode::BAD_REQUEST)
+            .body(hyper::Body::from("<h1>Could not edit schedule.</h1><br><a href=\"/index/\">Go back to main page</a>"))
+            .unwrap()))
+    }
     let mut schedules = schedules.lock().unwrap();
     if let Some(selected) = select_sched(sched_name, &mut schedules)
     {
@@ -81,6 +91,12 @@ pub fn edit_sched(req: hyper::Body,
 pub fn delete_sched(sched_name: &str,
                     schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
                     filepath: String) -> BoxFut {
+    if !is_safe_string(&String::from(sched_name)) {
+        return Box::new(futures::future::ok(hyper::Response::builder()
+            .status(hyper::StatusCode::BAD_REQUEST)
+            .body(hyper::Body::from("<h1>Could not delete schedule.</h1><br><a href=\"/index/\">Go back to main page</a>"))
+            .unwrap()))
+    }
     let mut schedules = schedules.lock().unwrap();
     if let Some(index) = index_sched(sched_name, &schedules) {
         schedules.remove(index);
@@ -98,4 +114,8 @@ fn select_sched<'a>(name: &str, schedules: &'a mut Vec<Schedule>) -> Option<&'a 
 
 fn index_sched(name: &str, schedules: &Vec<Schedule>) -> Option<usize> {
     schedules.iter().position(|s| {s.name == name})
+}
+
+fn is_safe_string(input: &String) -> bool {
+    input.is_ascii() && !input.is_empty()
 }
