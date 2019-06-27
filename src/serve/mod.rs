@@ -90,7 +90,7 @@ pub fn web(
                                 write_schedules(&filepath, tmp);
                                 return html_future_ok(String::from("<h1>Deleted schedule</h1><br><a href=\"/index/\">Go back to main page</a>"), StatusCode::NO_CONTENT);
                             } else {
-                                return html_future_ok(String::from("<h1>No such schedule</h1><p>The schedule you tried to access doesn't exist.  Were you messing with the query?</p><br><a href=\"/index/\">Click here to go back to the main page</a>"), StatusCode::NOT_FOUND);
+                                return html_future_ok(String::from("<h1>No such schedule</h1><p>The schedule you tried to delete doesn't exist.  Were you messing with the query?</p><br><a href=\"/index/\">Click here to go back to the main page</a>"), StatusCode::NOT_FOUND);
                             }
                         }
                     }
