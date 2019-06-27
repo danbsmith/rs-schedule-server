@@ -8,6 +8,12 @@ pub struct Schedule {
     pub days: [DayInfo; 7],
 }
 
+impl PartialEq for Schedule {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.name == rhs.name
+    }
+}
+
 impl Schedule {
     pub fn new(dest: String, name: String) -> Schedule {
         let days = [DayInfo {
@@ -16,6 +22,10 @@ impl Schedule {
             enable: false,
         }; 7];
         Schedule { dest, name, days }
+    }
+
+    pub fn get_name(&self) -> String {
+        self.name.clone()
     }
 
     pub fn update_day(&mut self, ind: usize, hour: u32, minute: u32, enable: bool) -> () {
