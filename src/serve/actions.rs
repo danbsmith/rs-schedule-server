@@ -99,3 +99,7 @@ fn select_sched<'a>(name: &str, schedules: &'a mut Vec<Schedule>) -> Option<&'a 
 fn index_sched(name: &str, schedules: &Vec<Schedule>) -> Option<usize> {
     schedules.iter().position(|s| {s.name == name})
 }
+
+fn is_safe_string(input: &String) -> bool {
+    input.is_ascii() && !input.is_empty()
+}
