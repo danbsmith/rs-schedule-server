@@ -31,8 +31,7 @@ pub fn web(
         }
         (&hyper::Method::POST, uri_path) => {
             let path_parts: std::vec::Vec<&str> = uri_path.split('/').collect();
-            if path_parts.len() == 1 && path_parts[0].eq("newsched")
-            {
+            if path_parts.len() == 1 && path_parts[0].eq("newsched") {
                 return actions::create_new_sched(req.into_body(), schedules, filepath);
             } else if path_parts.len() == 3 && path_parts[0].eq("schedit") && path_parts[1].eq("update") {
                     let sched_name = String::from(path_parts[2]);

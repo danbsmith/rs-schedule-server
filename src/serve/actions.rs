@@ -12,14 +12,14 @@ pub fn create_new_sched(req: hyper::Body,
     Box::new(req.concat2()
         .map(move |b| {
             let query = form_urlencoded::parse(b.as_ref())
-            .into_owned()
-            .collect::<std::collections::HashMap<String, String>>();
+                .into_owned()
+                .collect::<std::collections::HashMap<String, String>>();
             let (name_field, uri_field) = match (query.get("name"), query.get("url")) {
                 (Some(nf),Some(uf)) => (nf,uf),
                 _ => return hyper::Response::builder()
-                .status(hyper::StatusCode::BAD_REQUEST)
-                .body(hyper::Body::from("<h1>Could not create new schedule.<h1><br><a href=\"/index/\">Go back to main page</a>"))
-                .unwrap()
+                    .status(hyper::StatusCode::BAD_REQUEST)
+                    .body(hyper::Body::from("<h1>Could not create new schedule.<h1><br><a href=\"/index/\">Go back to main page</a>"))
+                    .unwrap()
             };
             let schedules = &mut schedules.lock().unwrap();
             {
