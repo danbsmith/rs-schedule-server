@@ -112,7 +112,7 @@ fn main() {
                 } else if old_time.minute() != chrono::Local::now().minute() {
                     waiting = false;
                 }
-                std::thread::sleep(std::time::Duration::from_millis(1));
+                std::thread::sleep(std::time::Duration::from_millis(10));
             }
         })
         .unwrap();
