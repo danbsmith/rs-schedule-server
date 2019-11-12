@@ -6,9 +6,11 @@ use hyper::StatusCode;
 use std::collections::HashMap;
 use url::form_urlencoded;
 
-pub fn create_new_sched(req: hyper::Body,
-                        schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
-                        filepath: String) -> BoxFut {
+pub fn create_new_sched(
+    req: hyper::Body,
+    schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
+    filepath: String,
+) -> BoxFut {
     Box::new(req.concat2()
         .map(move |b| {
             let blank = String::from("");
@@ -40,10 +42,12 @@ pub fn create_new_sched(req: hyper::Body,
     }))
 }
 
-pub fn edit_sched(req: hyper::Body,
-                  sched_name: &str,
-                  schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
-                  filepath: String) -> BoxFut {
+pub fn edit_sched(
+    req: hyper::Body,
+    sched_name: &str,
+    schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
+    filepath: String,
+) -> BoxFut {
     if !is_safe_string(&String::from(sched_name)) {
         return Box::new(futures::future::ok(hyper::Response::builder()
             .status(hyper::StatusCode::BAD_REQUEST)
@@ -88,9 +92,11 @@ pub fn edit_sched(req: hyper::Body,
     html_future_ok(format!("<h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a>", sched_name), StatusCode::NOT_FOUND)
 }
 
-pub fn delete_sched(sched_name: &str,
-                    schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
-                    filepath: String) -> BoxFut {
+pub fn delete_sched(
+    sched_name: &str,
+    schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
+    filepath: String,
+) -> BoxFut {
     if !is_safe_string(&String::from(sched_name)) {
         return Box::new(futures::future::ok(hyper::Response::builder()
             .status(hyper::StatusCode::BAD_REQUEST)
@@ -108,8 +114,8 @@ pub fn delete_sched(sched_name: &str,
     }
 }
 
-fn select_sched<'a>(name: &str, schedules: &'a mut Vec<Schedule>) -> Option<&'a mut  Schedule> {
-    schedules.iter_mut().filter(|s|{s.name.eq(name)}).next()
+fn select_sched<'a>(name: &str, schedules: &'a mut Vec<Schedule>) -> Option<&'a mut Schedule> {
+    schedules.iter_mut().filter(|s| s.name.eq(name)).next()
 }
 
 fn index_sched(name: &str, schedules: &Vec<Schedule>) -> Option<usize> {
