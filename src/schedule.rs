@@ -45,7 +45,7 @@ pub struct DayInfo {
 }
 
 pub fn read_schedules(path: &str) -> Result<Vec<Schedule>, serde_json::Error> {
-    let mut res;
+    let res;
     println!("{}", path);
     if let Ok(sourcefile) = std::fs::File::open(path) {
         res = serde_json::from_reader(sourcefile);

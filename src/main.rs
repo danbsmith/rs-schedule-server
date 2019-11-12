@@ -25,7 +25,7 @@ static DAY_NAMES: [&str; 7] = [
     "Sunday",
 ];
 
-type BoxFut = Box<Future<Item = Response<Body>, Error = hyper::Error> + Send>;
+type BoxFut = Box<dyn Future<Item = Response<Body>, Error = hyper::Error> + Send>;
 
 fn main() {
     let mut port = 5104;
