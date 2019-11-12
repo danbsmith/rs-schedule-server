@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use crate::serve::html_gen::html_future_ok;
-use crate::BoxFut;
-use url::form_urlencoded;
 use crate::futures::{Future, Stream};
 use crate::schedule::*;
+use crate::serve::html_gen::html_future_ok;
+use crate::BoxFut;
 use hyper::StatusCode;
+use std::collections::HashMap;
+use url::form_urlencoded;
 
 pub fn create_new_sched(req: hyper::Body,
                         schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,

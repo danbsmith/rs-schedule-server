@@ -1,11 +1,10 @@
-mod html_gen;
 mod actions;
+mod html_gen;
 
 use crate::schedule::*;
 use crate::BoxFut;
 use html_gen::*;
 use hyper::{Body, Request, StatusCode};
-
 
 pub fn web(
     req: Request<Body>,
