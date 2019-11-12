@@ -1,11 +1,10 @@
-mod html_gen;
 mod actions;
+mod html_gen;
 
 use crate::schedule::*;
 use crate::BoxFut;
 use html_gen::*;
 use hyper::{Body, Request, StatusCode};
-
 
 pub fn web(
     req: Request<Body>,
@@ -24,8 +23,7 @@ pub fn web(
             }
             if uri_path.eq("/newsched/") {
                 return gen_new_page();
-            }
-            else {
+            } else {
                 return html_future_ok(String::from("<h1>Not Found</h1><p>The page you requested could not be located.</p><a href=\"/index/\">Return to main page</a>"), StatusCode::NOT_FOUND);
             }
         }
@@ -33,13 +31,15 @@ pub fn web(
             let path_parts: std::vec::Vec<&str> = uri_path.split('/').collect();
             if path_parts.len() == 1 && path_parts[0].eq("newsched") {
                 return actions::create_new_sched(req.into_body(), schedules, filepath);
-            } else if path_parts.len() == 3 && path_parts[0].eq("schedit") && path_parts[1].eq("update") {
-                    let sched_name = String::from(path_parts[2]);
-                    return actions::edit_sched(req.into_body(), &sched_name, schedules, filepath);
+            } else if path_parts.len() == 3
+                && path_parts[0].eq("schedit")
+                && path_parts[1].eq("update")
+            {
+                let sched_name = String::from(path_parts[2]);
+                return actions::edit_sched(req.into_body(), &sched_name, schedules, filepath);
             } else if path_parts.len() == 2 && path_parts[0].eq("delete") {
                 return actions::delete_sched(path_parts[1], schedules, filepath);
-            }
-            else {
+            } else {
                 return html_future_ok(String::from(""), StatusCode::NOT_FOUND);
             }
         }

@@ -1,5 +1,5 @@
-use crate::BoxFut;
 use crate::schedule::{DayInfo, Schedule};
+use crate::BoxFut;
 use chrono::{Local, Timelike};
 
 pub fn gen_main_page(schedules: &Vec<Schedule>) -> BoxFut {
@@ -54,5 +54,10 @@ fn sched_form(day: &DayInfo, day_num: u32) -> String {
 }
 
 pub fn html_future_ok(body: String, status: hyper::StatusCode) -> BoxFut {
-    Box::new(futures::future::ok(hyper::Response::builder().status(status).body(hyper::Body::from(body)).unwrap()))
+    Box::new(futures::future::ok(
+        hyper::Response::builder()
+            .status(status)
+            .body(hyper::Body::from(body))
+            .unwrap(),
+    ))
 }
