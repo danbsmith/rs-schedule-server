@@ -44,50 +44,51 @@ pub fn create_new_sched(
 
 pub fn edit_sched(
     req: hyper::Body,
-    sched_name: &str,
+    sched_name: String,
     schedules: std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
     filepath: String,
 ) -> BoxFut {
-    if !is_safe_string(&String::from(sched_name)) {
+    if !is_safe_string(&sched_name) {
         return Box::new(futures::future::ok(hyper::Response::builder()
             .status(hyper::StatusCode::BAD_REQUEST)
             .body(hyper::Body::from("<h1>Could not edit schedule.</h1><br><a href=\"/index/\">Go back to main page</a>"))
             .unwrap()));
     }
-    let mut schedules = schedules.lock().unwrap();
-    if let Some(selected) = select_sched(sched_name, &mut schedules) {
-        let name = selected.get_name();
-        let dest = selected.dest.clone();
-        let res = req.concat2().map(move |b| {
-            let mut sched = Schedule::new(dest, name);
-            let query = form_urlencoded::parse(b.as_ref())
-                .into_owned()
-                .collect::<HashMap<String, String>>();
-            for d in 0..7 {
-                let h = format!("{}_hour", crate::DAY_NAMES[d]);
-                let m = format!("{}_minute", crate::DAY_NAMES[d]);
-                let e = format!("{}_enabled", crate::DAY_NAMES[d]);
-                let input = (
-                    query.get(&h).unwrap(),
-                    query.get(&m).unwrap(),
-                    query.get(&e),
-                );
-                let hour = input.0.parse().unwrap();
-                let minute = input.1.parse().unwrap();
-                let enabled = match input.2 {
-                    Some(_) => true,
-                    None => false,
-                };
-                sched.update_day(d, hour, minute, enabled);
-            }
-            sched
-        }).map(|s| { hyper::Response::builder().status(hyper::StatusCode::OK).body(hyper::Body::from(format!("<h1>Updated a schedule.</h1><p> Its name is {}</p><br><a href = \"/index/\">Go back to main page</a>",
-            s.name))).unwrap() });
-        //let name = selected.get_name();
-        write_schedules(&filepath, &schedules);
-        return Box::new(res);
-    }
-    html_future_ok(format!("<h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a>", sched_name), StatusCode::NOT_FOUND)
+    let response = req.concat2().map(move |b| {
+            let schedules = &mut schedules.lock().unwrap();
+            if let Some(selected) = select_sched(&sched_name, schedules) {
+                let name = selected.get_name();
+                let dest = selected.dest.clone();
+                let mut sched = Schedule::new(dest, name);
+                let query = form_urlencoded::parse(b.as_ref())
+                    .into_owned()
+                    .collect::<HashMap<String, String>>();
+                for d in 0..7 {
+                    let h = format!("{}_hour", crate::DAY_NAMES[d]);
+                    let m = format!("{}_minute", crate::DAY_NAMES[d]);
+                    let e = format!("{}_enabled", crate::DAY_NAMES[d]);
+                    let input = (
+                        query.get(&h).unwrap(),
+                        query.get(&m).unwrap(),
+                        query.get(&e),
+                    );
+                    let hour = input.0.parse().unwrap();
+                    let minute = input.1.parse().unwrap();
+                    let enabled = match input.2 {
+                        Some(_) => true,
+                        None => false,
+                    };
+                    sched.update_day(d, hour, minute, enabled);
+                }
+                write_schedules(&filepath, schedules);
+                return hyper::Response::builder()
+                    .status(StatusCode::OK)
+                    .body(hyper::Body::from(String::from(format!("<h1>Updated a schedule.</h1><p> Its name is {}</p><br><a href = \"/index/\">Go back to main page</a>", sched.get_name()))))
+                    .unwrap()
+                }
+            hyper::Response::builder().status(StatusCode::NOT_FOUND).body(hyper::Body::from(String::from(format!("<h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a>", sched_name)))).unwrap()
+        });
+    return Box::new(response);
 }
 
 pub fn delete_sched(
@@ -117,7 +118,7 @@ pub fn delete_sched(
     }
 }
 
-fn select_sched<'a>(name: &str, schedules: &'a mut Vec<Schedule>) -> Option<&'a mut Schedule> {
+fn select_sched<'a>(name: &'a str, schedules: &'a mut Vec<Schedule>) -> Option<&'a mut Schedule> {
     schedules.iter_mut().filter(|s| s.name.eq(name)).next()
 }
 

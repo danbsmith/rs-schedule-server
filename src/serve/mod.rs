@@ -36,7 +36,7 @@ pub fn web(
                 && path_parts[1].eq("update")
             {
                 let sched_name = String::from(path_parts[2]);
-                return actions::edit_sched(req.into_body(), &sched_name, schedules, filepath);
+                return actions::edit_sched(req.into_body(), sched_name, schedules, filepath);
             } else if path_parts.len() == 2 && path_parts[0].eq("delete") {
                 return actions::delete_sched(path_parts[1], schedules, filepath);
             } else {
