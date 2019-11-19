@@ -40,11 +40,17 @@ pub fn web(
             } else if path_parts.len() == 2 && path_parts[0].eq("delete") {
                 return actions::delete_sched(path_parts[1], schedules, filepath);
             } else {
-                return html_future_ok(String::from(""), StatusCode::NOT_FOUND);
+                return html_future_ok(
+                    String::from("<p>No posting to that path.</p>"),
+                    StatusCode::NOT_FOUND,
+                );
             }
         }
         _ => {
-            return html_future_ok(String::from(""), StatusCode::NOT_FOUND);
+            return html_future_ok(
+                String::from("<p>I can't find that path.</p>"),
+                StatusCode::NOT_FOUND,
+            );
         }
     }
 }
