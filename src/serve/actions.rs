@@ -59,7 +59,7 @@ pub fn edit_sched(
             if let Some(selected) = select_sched(&sched_name, schedules) {
                 let name = selected.get_name();
                 let dest = selected.dest.clone();
-                let mut sched = Schedule::new(dest, name);
+                let mut sched = Schedule::new(dest, name.clone());
                 let query = form_urlencoded::parse(b.as_ref())
                     .into_owned()
                     .collect::<HashMap<String, String>>();
@@ -80,10 +80,11 @@ pub fn edit_sched(
                     };
                     sched.update_day(d, hour, minute, enabled);
                 }
+                *selected = sched;
                 write_schedules(&filepath, schedules);
                 return hyper::Response::builder()
                     .status(StatusCode::OK)
-                    .body(hyper::Body::from(String::from(format!("<h1>Updated a schedule.</h1><p> Its name is {}</p><br><a href = \"/index/\">Go back to main page</a>", sched.get_name()))))
+                    .body(hyper::Body::from(String::from(format!("<h1>Updated a schedule.</h1><p> Its name is {}</p><br><a href = \"/index/\">Go back to main page</a>", name))))
                     .unwrap()
                 }
             hyper::Response::builder().status(StatusCode::NOT_FOUND).body(hyper::Body::from(String::from(format!("<h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a>", sched_name)))).unwrap()
