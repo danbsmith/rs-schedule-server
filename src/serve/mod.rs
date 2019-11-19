@@ -28,7 +28,8 @@ pub fn web(
             }
         }
         (&hyper::Method::POST, uri_path) => {
-            let path_parts: std::vec::Vec<&str> = uri_path.split('/').collect();
+            let path_parts: std::vec::Vec<&str> =
+                uri_path.split('/').filter(|s| !s.is_empty()).collect();
             if path_parts.len() == 1 && path_parts[0].eq("newsched") {
                 return actions::create_new_sched(req.into_body(), schedules, filepath);
             } else if path_parts.len() == 3
