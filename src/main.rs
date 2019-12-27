@@ -133,3 +133,12 @@ fn main() {
     }));
     let _joined = request_thread.join();
 }
+
+fn generate_request(client: &hyper::Client<hyper::client::HttpConnector>, endpoint: &Endpoint) -> hyper::client::ResponseFuture {
+    let dest = hyper::Uri::from_str(&endpoint.dest).unwrap();
+    match endpoint.method {
+        HttpMethod::GET => client.get(dest),
+        HttpMethod::PUT => client.request(hyper::Request::builder().method(hyper::Method::PUT).uri(dest).body(hyper::Body::from(endpoint.body.clone())).unwrap()),
+        HttpMethod::POST => client.request(hyper::Request::builder().method(hyper::Method::POST).uri(dest).body(hyper::Body::from(endpoint.body.clone())).unwrap()),
+    }
+}
