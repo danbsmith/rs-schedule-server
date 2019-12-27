@@ -84,3 +84,12 @@ pub fn write_schedules(path: &str, schedules: &Vec<Schedule>) {
         eprint!("ERROR: {:?}, path was {}", res, path);
     }
 }
+
+pub fn convert_method(method: &str) -> Option<HttpMethod> {
+    match method {
+        "GET" => Some(HttpMethod::GET),
+        "PUT" => Some(HttpMethod::PUT),
+        "POST" => Some(HttpMethod::POST),
+        _ => None,
+    }
+}
