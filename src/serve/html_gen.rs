@@ -7,7 +7,7 @@ pub fn gen_main_page(schedules: &Vec<Schedule>) -> BoxFut {
     html_future_ok(s, hyper::StatusCode::OK)
 }
 
-pub fn gen_new_page() -> BoxFut {
+pub fn gen_new_page() -> BoxFut { // TODO: Edit new schedule page to bring in new request info
     html_future_ok(String::from("<h1>Hello, New Schedule</h1>Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>"), hyper::StatusCode::OK)
 }
 

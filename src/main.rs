@@ -98,8 +98,7 @@ fn main() {
                             fired |= true;
                             let client = Arc::clone(&client);
                             hyper::rt::run(futures::future::lazy(move || {
-                                client
-                                    .get(hyper::Uri::from_str(&sched.dest).unwrap())
+                                generate_request(&client, &sched.dest)
                                     .map(|_res| {})
                                     .map_err(|err| eprintln!("Requestor Error: {}", err))
                             }))
