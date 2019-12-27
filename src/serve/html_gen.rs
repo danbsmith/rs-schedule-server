@@ -7,8 +7,8 @@ pub fn gen_main_page(schedules: &Vec<Schedule>) -> BoxFut {
     html_future_ok(s, hyper::StatusCode::OK)
 }
 
-pub fn gen_new_page() -> BoxFut { // TODO: Edit new schedule page to bring in new request info
-    html_future_ok(String::from("<h1>Hello, New Schedule</h1>Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>"), hyper::StatusCode::OK)
+pub fn gen_new_page() -> BoxFut {
+    html_future_ok(String::from("<h1>Hello, New Schedule</h1>Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"text\" name=\"body\"></div></div><br><div><select name=\"method\"><option value=\"\">Choose an option</option><option value=\"GET\">GET</option><option value=\"PUT\">PUT</option><option value=\"POST\">POST</option></select></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>"), hyper::StatusCode::OK)
 }
 
 fn sched_links(schedules: &Vec<Schedule>) -> String {
