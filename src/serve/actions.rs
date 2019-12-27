@@ -17,20 +17,22 @@ pub fn create_new_sched(
             let query = form_urlencoded::parse(b.as_ref())
                 .into_owned()
                 .collect::<std::collections::HashMap<String, String>>();
-            let (name_field, uri_field) = match (query.get("name"), query.get("url")) {
-                (Some(nf),Some(uf)) => (nf,uf),
-                _ => (&blank, &blank)
+            let (name_field, uri_field, method_field, body_field) = match (query.get("name"), query.get("url"), query.get("method"), query.get("body")) {
+                (Some(nf),Some(uf),Some(mf),Some(bf)) => (nf,uf,mf,bf),
+                _ => (&blank, &blank, &blank, &blank)
             };
-            if!is_safe_string(&name_field) || !is_safe_string(&uri_field) {
+            if !is_safe_string(&name_field) || !is_safe_string(&uri_field) || !is_safe_string(method_field) {
                 return hyper::Response::builder()
                     .status(hyper::StatusCode::BAD_REQUEST)
                     .body(hyper::Body::from("<h1>Could not create new schedule.</h1><br><a href=\"/index/\">Go back to main page</a>"))
                     .unwrap();
             }
+            let method = convert_method(method_field).unwrap();
+            let dest = Endpoint::new(uri_field.clone(), method, body_field.clone());
             let schedules = &mut schedules.lock().unwrap();
             {
                 let schedules: &mut std::vec::Vec<Schedule> = schedules.as_mut();
-                schedules.push(Schedule::new(uri_field.to_string(), name_field.to_string()));
+                schedules.push(Schedule::new(dest.dest, dest.method, dest.body, name_field.to_string()));
                 write_schedules(&filepath, schedules);
             }
             let new_name = String::from(schedules[0].name.as_str());
@@ -59,7 +61,7 @@ pub fn edit_sched(
             if let Some(selected) = select_sched(&sched_name, schedules) {
                 let name = selected.get_name();
                 let dest = selected.dest.clone();
-                let mut sched = Schedule::new(dest, name.clone());
+                let mut sched = Schedule::new(dest.dest, dest.method, dest.body, name.clone());
                 let query = form_urlencoded::parse(b.as_ref())
                     .into_owned()
                     .collect::<HashMap<String, String>>();
