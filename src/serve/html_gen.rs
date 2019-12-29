@@ -1,6 +1,7 @@
-use crate::schedule::{DayInfo, Schedule};
 use crate::BoxFut;
+use crate::schedule::{DayInfo, Schedule};
 use chrono::{Local, Timelike};
+use futures::future;
 
 pub fn gen_main_page(schedules: &Vec<Schedule>) -> BoxFut {
     let s = format!("<h1>Hello, Schedule Server</h1><div>Available Schedules:<br>{}</div><div><a href=/newsched/>New Schedule</a></div>", sched_links(schedules));
@@ -8,7 +9,7 @@ pub fn gen_main_page(schedules: &Vec<Schedule>) -> BoxFut {
 }
 
 pub fn gen_new_page() -> BoxFut {
-    html_future_ok(String::from("<h1>Hello, New Schedule</h1>Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>"), hyper::StatusCode::OK)
+    html_future_ok(String::from("<h1>Hello, New Schedule</h1>Name: <form action=\"/newsched/\" method=post><div><input type=\"text\" name=\"name\" minlength=\"1\"></div><div>Destination URL: <input type=\"url\" name=\"url\"></div><br><div><input type=\"text\" name=\"body\"></div></div><br><div><select name=\"method\"><option value=\"\">Choose an option</option><option value=\"GET\">GET</option><option value=\"PUT\">PUT</option><option value=\"POST\">POST</option></select></div><br><div><input type=\"submit\" value=\"Create Schedule\"></div></form>"), hyper::StatusCode::OK)
 }
 
 fn sched_links(schedules: &Vec<Schedule>) -> String {
@@ -54,10 +55,12 @@ fn sched_form(day: &DayInfo, day_num: u32) -> String {
 }
 
 pub fn html_future_ok(body: String, status: hyper::StatusCode) -> BoxFut {
-    Box::new(futures::future::ok(
-        hyper::Response::builder()
-            .status(status)
-            .body(hyper::Body::from(body))
-            .unwrap(),
-    ))
+    Box::pin(future::ready(hyper::Response::builder()
+        .status(status)
+        .body(hyper::Body::from(body))
+        .unwrap()))
+        /*hyper::Response::builder()
+                .status(status)
+                .body(hyper::Body::from(body))
+                .unwrap()*/
 }

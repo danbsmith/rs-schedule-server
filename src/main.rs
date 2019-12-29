@@ -9,9 +9,12 @@ mod schedule;
 mod serve;
 
 use chrono::{Datelike, Timelike};
-use hyper::rt::Future;
-use hyper::{Body, Client, Response, Server};
+use hyper::server::conn::AddrStream;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, Client, Error, Response, Server};
 use schedule::*;
+use std::future::Future;
+use std::pin::Pin;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
@@ -25,9 +28,10 @@ static DAY_NAMES: [&str; 7] = [
     "Sunday",
 ];
 
-type BoxFut = Box<dyn Future<Item = Response<Body>, Error = hyper::Error> + Send>;
-
-fn main() {
+type BoxFut = Pin<Box<dyn Future<Output = Response<Body>> + Send>>;
+//type BoxFut = Response<Body>;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let mut port = 5104;
     let snap_common_path = match std::env::var("SNAP_USER_COMMON") {
         Ok(v) => std::path::PathBuf::from(v),
@@ -78,58 +82,79 @@ fn main() {
     };
     let schedules = Arc::new(Mutex::new(schedules));
     let background = Arc::clone(&schedules);
-    let request_thread = std::thread::Builder::new()
-        .name("Requestor Thread".into())
-        .spawn(move || {
-            let client = Arc::from(Client::new());
-            let mut waiting = false;
-            let mut old_time = chrono::Local::now();
-            loop {
-                let scheds = background.lock().unwrap();
-                let curr_time = chrono::Local::now();
-                let mut fired = false;
-                if !waiting {
-                    for sched in scheds.to_vec() {
-                        let day = sched.days[curr_time.weekday().num_days_from_monday() as usize];
-                        if curr_time.hour() == day.hour
-                            && curr_time.minute() == day.minute
-                            && day.enable
-                        {
-                            fired |= true;
-                            let client = Arc::clone(&client);
-                            hyper::rt::run(futures::future::lazy(move || {
-                                client
-                                    .get(hyper::Uri::from_str(&sched.dest).unwrap())
-                                    .map(|_res| {})
-                                    .map_err(|err| eprintln!("Requestor Error: {}", err))
-                            }))
-                        }
-                    }
+    let addr = std::net::Ipv4Addr::UNSPECIFIED;
+    let addr = (addr.octets(), port).into();
+    let service = move |_: &AddrStream| {
+        let filename = (&filename).clone();
+        let schedules = (&schedules).clone();
+        async move {
+            Ok::<_, Error>(service_fn(move |req| {
+                let filename = (&filename).clone();
+                let schedules = (&schedules).clone();
+                async move {
+                    Ok::<_, Error>(serve::web(req, &schedules, filename).await)
                 }
-                if fired {
-                    old_time = chrono::Local::now();
-                    waiting = true;
-                } else if old_time.minute() != chrono::Local::now().minute() {
-                    waiting = false;
+            }))
+        }
+    };
+    let make_service = make_service_fn(service);
+    let server = Server::bind(&addr).serve(make_service);
+    tokio::spawn(async move {server.await});
+    let background = (&background).clone();
+    let client = Arc::from(Client::new());
+    let mut waiting = false;
+    let mut old_time = chrono::Local::now();
+    println!("Starting Request Thread");
+    loop {
+        let curr_time = chrono::Local::now();
+        let mut fired = false;
+        if !waiting {
+            let scheds = background.lock().unwrap();
+            for sched in scheds.to_vec() {
+                let day = sched.days[curr_time.weekday().num_days_from_monday() as usize];
+                if curr_time.hour() == day.hour
+                    && curr_time.minute() == day.minute
+                    && day.enable
+                {
+                    fired |= true;
+                    let client = Arc::clone(&client);
+                    println!("{:?}", sched.dest);
+                    let res = tokio::spawn(async move{generate_request(&client.clone(), &(sched.dest).clone()).await}).await;
+                    println!("{:?}", res.unwrap().await);
                 }
-                std::thread::sleep(std::time::Duration::from_millis(10));
             }
-        })
-        .unwrap();
-    hyper::rt::run(futures::future::lazy(move || {
-        let new_service = move || {
-            let schedules = schedules.clone();
-            let filename = filename.clone();
-            hyper::service::service_fn(move |req| {
-                serve::web(req, schedules.clone(), filename.clone())
-            })
-        };
-        let addr = std::net::Ipv4Addr::UNSPECIFIED;
-        let addr = (addr.octets(), port).into();
-        let server = Server::bind(&addr)
-            .serve(new_service)
-            .map_err(|e| eprintln!("Server Error: {}", e));
-        server
-    }));
-    let _joined = request_thread.join();
+        }
+        if fired {
+            old_time = chrono::Local::now();
+            waiting = true;
+        } else if old_time.minute() != chrono::Local::now().minute() {
+            waiting = false;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+}
+
+async fn generate_request(
+    client: &hyper::Client<hyper::client::HttpConnector>,
+    endpoint: &Endpoint,
+) -> hyper::client::ResponseFuture {
+    let dest = hyper::Uri::from_str(&endpoint.dest).unwrap();
+    println!("Generating request for: {:?}", dest);
+    match endpoint.method {
+        HttpMethod::GET => client.get(dest),
+        HttpMethod::PUT => client.request(
+            hyper::Request::builder()
+                .method(hyper::Method::PUT)
+                .uri(dest)
+                .body(hyper::Body::from(endpoint.body.clone()))
+                .unwrap(),
+        ),
+        HttpMethod::POST => client.request(
+            hyper::Request::builder()
+                .method(hyper::Method::POST)
+                .uri(dest)
+                .body(hyper::Body::from(endpoint.body.clone()))
+                .unwrap(),
+        ),
+    }
 }

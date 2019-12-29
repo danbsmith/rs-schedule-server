@@ -1,9 +1,9 @@
 use serde::de::Error;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Schedule {
-    pub dest: String,
+    pub dest: Endpoint,
     pub name: String,
     pub days: [DayInfo; 7],
 }
@@ -15,12 +15,13 @@ impl PartialEq for Schedule {
 }
 
 impl Schedule {
-    pub fn new(dest: String, name: String) -> Schedule {
+    pub fn new(dest: String, method: HttpMethod, body: String, name: String) -> Schedule {
         let days = [DayInfo {
             hour: 0,
             minute: 0,
             enable: false,
         }; 7];
+        let dest = Endpoint::new(dest, method, body);
         Schedule { dest, name, days }
     }
 
@@ -37,7 +38,27 @@ impl Schedule {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum HttpMethod {
+    GET,
+    PUT,
+    POST,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Endpoint {
+    pub method: HttpMethod,
+    pub dest: String,
+    pub body: String,
+}
+
+impl Endpoint {
+    pub fn new(dest: String, method: HttpMethod, body: String) -> Endpoint {
+        Endpoint { method, dest, body }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct DayInfo {
     pub hour: u32,
     pub minute: u32,
@@ -61,5 +82,14 @@ pub fn write_schedules(path: &str, schedules: &Vec<Schedule>) {
     let destfile = std::fs::File::create(path).unwrap();
     if let Err(res) = serde_json::to_writer(destfile, schedules) {
         eprint!("ERROR: {:?}, path was {}", res, path);
+    }
+}
+
+pub fn convert_method(method: &str) -> Option<HttpMethod> {
+    match method {
+        "GET" => Some(HttpMethod::GET),
+        "PUT" => Some(HttpMethod::PUT),
+        "POST" => Some(HttpMethod::POST),
+        _ => None,
     }
 }
