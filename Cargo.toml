@@ -1,6 +1,6 @@
 [package]
 name = "rs-schedule-server"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Daniel Smith <daniel@smitbo.com>"]
 edition = "2018"
 
