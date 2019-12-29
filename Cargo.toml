@@ -5,8 +5,9 @@ authors = ["Daniel Smith <daniel@smitbo.com>"]
 edition = "2018"
 
 [dependencies]
-hyper = "0.12"
-futures = "0.1"
+hyper = {version = "0.13", features = ["stream"]}
+futures = "0.3"
+tokio = {version = "0.2", features = ["full"]}
 serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 url = "1.0"
