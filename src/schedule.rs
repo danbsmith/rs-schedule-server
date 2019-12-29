@@ -1,7 +1,7 @@
 use serde::de::Error;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Schedule {
     pub dest: Endpoint,
     pub name: String,
@@ -38,14 +38,14 @@ impl Schedule {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum HttpMethod {
     GET,
     PUT,
     POST,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Endpoint {
     pub method: HttpMethod,
     pub dest: String,
@@ -58,7 +58,7 @@ impl Endpoint {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct DayInfo {
     pub hour: u32,
     pub minute: u32,
