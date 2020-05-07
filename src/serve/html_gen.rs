@@ -1,5 +1,5 @@
-use crate::BoxFut;
 use crate::schedule::{DayInfo, Schedule};
+use crate::BoxFut;
 use chrono::{Local, Timelike};
 use futures::future;
 

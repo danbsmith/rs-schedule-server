@@ -128,14 +128,8 @@ pub fn delete_sched(
     }
 }
 
-fn select_sched<'a>(
-    name: &'a str,
-    schedules: &'a mut Vec<Schedule>,
-) -> Option<&'a mut Schedule> {
-    schedules
-        .iter_mut()
-        .filter(|s| s.name.eq(name))
-        .next()
+fn select_sched<'a>(name: &'a str, schedules: &'a mut Vec<Schedule>) -> Option<&'a mut Schedule> {
+    schedules.iter_mut().filter(|s| s.name.eq(name)).next()
 }
 
 fn index_sched(name: &str, schedules: &Vec<Schedule>) -> Option<usize> {

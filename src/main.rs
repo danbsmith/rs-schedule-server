@@ -91,15 +91,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Ok::<_, Error>(service_fn(move |req| {
                 let filename = (&filename).clone();
                 let schedules = (&schedules).clone();
-                async move {
-                    Ok::<_, Error>(serve::web(req, &schedules, filename).await)
-                }
+                async move { Ok::<_, Error>(serve::web(req, &schedules, filename).await) }
             }))
         }
     };
     let make_service = make_service_fn(service);
     let server = Server::bind(&addr).serve(make_service);
-    tokio::spawn(async move {server.await});
+    tokio::spawn(async move { server.await });
     let background = (&background).clone();
     let client = Arc::from(Client::new());
     let mut waiting = false;
@@ -112,14 +110,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             let scheds = background.lock().unwrap();
             for sched in scheds.to_vec() {
                 let day = sched.days[curr_time.weekday().num_days_from_monday() as usize];
-                if curr_time.hour() == day.hour
-                    && curr_time.minute() == day.minute
-                    && day.enable
-                {
+                if curr_time.hour() == day.hour && curr_time.minute() == day.minute && day.enable {
                     fired |= true;
                     let client = Arc::clone(&client);
                     println!("{:?}", sched.dest);
-                    let res = tokio::spawn(async move{generate_request(&client.clone(), &(sched.dest).clone()).await}).await;
+                    let res = tokio::spawn(async move {
+                        generate_request(&client.clone(), &(sched.dest).clone()).await
+                    })
+                    .await;
                     println!("{:?}", res.unwrap().await);
                 }
             }
