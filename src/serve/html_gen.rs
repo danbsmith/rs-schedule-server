@@ -58,7 +58,11 @@ pub fn html_future_ok(body: String, status: hyper::StatusCode) -> BoxFut {
     Box::pin(future::ready(
         hyper::Response::builder()
             .status(status)
-            .body(hyper::Body::from(String::from(format!("<html><body>{}</body></html>", body))))
+            .header("Content-Type", "text/html")
+            .body(hyper::Body::from(String::from(format!(
+                "<html><body>{}</body></html>",
+                body
+            ))))
             .unwrap(),
     ))
 }
