@@ -43,7 +43,7 @@ pub fn create_new_sched(
             write_schedules(&filepath, schedules);
         }
         let new_name = String::from(schedules[0].name.as_str());
-        hyper::Response::builder().status(hyper::StatusCode::CREATED).body(format!("<html><body><h1>Created new schedule</h1><p>Its name is {}</p><br><a href=\"/index/\">Go back to main page</a></body></html>",
+        hyper::Response::builder().status(hyper::StatusCode::CREATED).header("Content-Type", "text/html").body(format!("<html><body><h1>Created new schedule</h1><p>Its name is {}</p><br><a href=\"/index/\">Go back to main page</a></body></html>",
             new_name).into()).unwrap()
     });
     Box::pin(res)
@@ -90,12 +90,13 @@ pub fn edit_sched(
             *selected = sched;
             let v = hyper::Response::builder()
                         .status(StatusCode::OK)
+                        .header("Content-Type", "text/html")
                         .body(hyper::Body::from(String::from(format!("<html><body><h1>Updated a schedule.</h1><p> Its name is {}</p><br><a href = \"/index/\">Go back to main page</a></body></html>", selected.get_name()))));
             write_schedules(&filepath, &schedules);
             v.unwrap()
         }
         else {
-            hyper::Response::builder().status(StatusCode::NOT_FOUND).body(hyper::Body::from(String::from(format!("<html><body><h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a></body></html>", sched_name)))).unwrap()
+            hyper::Response::builder().status(StatusCode::NOT_FOUND).header("Content-Type", "text/html").body(hyper::Body::from(String::from(format!("<html><body><h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a></body></html>", sched_name)))).unwrap()
         }
         });
     return Box::pin(res);
@@ -109,6 +110,7 @@ pub fn delete_sched(
     if !is_safe_string(&String::from(sched_name)) {
         return Box::pin(futures::future::ready(hyper::Response::builder()
             .status(hyper::StatusCode::BAD_REQUEST)
+            .header("Content-Type", "text/html")
             .body(hyper::Body::from("<html><body><h1>Could not delete schedule.</h1><br><a href=\"/index/\">Go back to main page</a></body></html>"))
             .unwrap()));
     }
