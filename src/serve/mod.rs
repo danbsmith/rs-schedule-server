@@ -1,8 +1,8 @@
 mod actions;
 mod html_gen;
 
-use crate::BoxFut;
 use crate::schedule::*;
+use crate::BoxFut;
 use html_gen::*;
 use hyper::{Body, Request, StatusCode};
 
@@ -31,14 +31,20 @@ pub fn web(
             let path_parts: std::vec::Vec<&str> =
                 uri_path.split('/').filter(|s| !s.is_empty()).collect();
             if path_parts.len() == 1 && path_parts[0].eq("newsched") {
-                let a: BoxFut = actions::create_new_sched(req.into_body(), schedules.clone(), filepath);
+                let a: BoxFut =
+                    actions::create_new_sched(req.into_body(), schedules.clone(), filepath);
                 return a;
             } else if path_parts.len() == 3
                 && path_parts[0].eq("schedit")
                 && path_parts[1].eq("update")
             {
                 let sched_name = String::from(path_parts[2]);
-                return actions::edit_sched(req.into_body(), sched_name, schedules.clone(), filepath);
+                return actions::edit_sched(
+                    req.into_body(),
+                    sched_name,
+                    schedules.clone(),
+                    filepath,
+                );
             } else if path_parts.len() == 2 && path_parts[0].eq("delete") {
                 return actions::delete_sched(path_parts[1], schedules.clone(), filepath);
             } else {

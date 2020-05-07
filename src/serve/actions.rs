@@ -27,7 +27,7 @@ pub fn create_new_sched(
         };
         if !is_safe_string(&name_field) || !is_safe_string(&uri_field) || !is_safe_string(method_field)
         {
-            return hyper::Response::builder().status(hyper::StatusCode::BAD_REQUEST).body("<h1>Could not create new schedule.</h1><br><a href=\"/index/\">Go back to main page</a>".into()).unwrap();
+            return hyper::Response::builder().status(hyper::StatusCode::BAD_REQUEST).body("<html><body><h1>Could not create new schedule.</h1><br><a href=\"/index/\">Go back to main page</a></body></html>".into()).unwrap();
         }
         let method = convert_method(method_field).unwrap();
         let dest = Endpoint::new(uri_field.clone(), method, body_field.clone());
@@ -43,7 +43,7 @@ pub fn create_new_sched(
             write_schedules(&filepath, schedules);
         }
         let new_name = String::from(schedules[0].name.as_str());
-        hyper::Response::builder().status(hyper::StatusCode::CREATED).body(format!("<h1>Created new schedule</h1><p>Its name is {}</p><br><a href=\"/index/\">Go back to main page</a>",
+        hyper::Response::builder().status(hyper::StatusCode::CREATED).body(format!("<html><body><h1>Created new schedule</h1><p>Its name is {}</p><br><a href=\"/index/\">Go back to main page</a></body></html>",
             new_name).into()).unwrap()
     });
     Box::pin(res)
@@ -90,12 +90,12 @@ pub fn edit_sched(
             *selected = sched;
             let v = hyper::Response::builder()
                         .status(StatusCode::OK)
-                        .body(hyper::Body::from(String::from(format!("<h1>Updated a schedule.</h1><p> Its name is {}</p><br><a href = \"/index/\">Go back to main page</a>", selected.get_name()))));
+                        .body(hyper::Body::from(String::from(format!("<html><body><h1>Updated a schedule.</h1><p> Its name is {}</p><br><a href = \"/index/\">Go back to main page</a></body></html>", selected.get_name()))));
             write_schedules(&filepath, &schedules);
             v.unwrap()
         }
         else {
-            hyper::Response::builder().status(StatusCode::NOT_FOUND).body(hyper::Body::from(String::from(format!("<h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a>", sched_name)))).unwrap()
+            hyper::Response::builder().status(StatusCode::NOT_FOUND).body(hyper::Body::from(String::from(format!("<html><body><h1>No such schedule</h1><p>There is no schedule named {}</p><br><a href = \"/index/\">Go back to main page</a></body></html>", sched_name)))).unwrap()
         }
         });
     return Box::pin(res);
@@ -109,7 +109,7 @@ pub fn delete_sched(
     if !is_safe_string(&String::from(sched_name)) {
         return Box::pin(futures::future::ready(hyper::Response::builder()
             .status(hyper::StatusCode::BAD_REQUEST)
-            .body(hyper::Body::from("<h1>Could not delete schedule.</h1><br><a href=\"/index/\">Go back to main page</a>"))
+            .body(hyper::Body::from("<html><body><h1>Could not delete schedule.</h1><br><a href=\"/index/\">Go back to main page</a></body></html>"))
             .unwrap()));
     }
     let mut schedules = schedules.lock().unwrap();
@@ -128,14 +128,8 @@ pub fn delete_sched(
     }
 }
 
-fn select_sched<'a>(
-    name: &'a str,
-    schedules: &'a mut Vec<Schedule>,
-) -> Option<&'a mut Schedule> {
-    schedules
-        .iter_mut()
-        .filter(|s| s.name.eq(name))
-        .next()
+fn select_sched<'a>(name: &'a str, schedules: &'a mut Vec<Schedule>) -> Option<&'a mut Schedule> {
+    schedules.iter_mut().filter(|s| s.name.eq(name)).next()
 }
 
 fn index_sched(name: &str, schedules: &Vec<Schedule>) -> Option<usize> {

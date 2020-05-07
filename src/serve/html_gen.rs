@@ -1,5 +1,5 @@
-use crate::BoxFut;
 use crate::schedule::{DayInfo, Schedule};
+use crate::BoxFut;
 use chrono::{Local, Timelike};
 use futures::future;
 
@@ -55,12 +55,10 @@ fn sched_form(day: &DayInfo, day_num: u32) -> String {
 }
 
 pub fn html_future_ok(body: String, status: hyper::StatusCode) -> BoxFut {
-    Box::pin(future::ready(hyper::Response::builder()
-        .status(status)
-        .body(hyper::Body::from(body))
-        .unwrap()))
-        /*hyper::Response::builder()
-                .status(status)
-                .body(hyper::Body::from(body))
-                .unwrap()*/
+    Box::pin(future::ready(
+        hyper::Response::builder()
+            .status(status)
+            .body(hyper::Body::from(String::from(format!("<html><body>{}</body></html>", body))))
+            .unwrap(),
+    ))
 }
