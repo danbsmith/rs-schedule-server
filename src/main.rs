@@ -143,6 +143,7 @@ async fn generate_request(
         HttpMethod::PUT => client.request(
             hyper::Request::builder()
                 .method(hyper::Method::PUT)
+                .header("Content-Type", "text/plain")
                 .uri(dest)
                 .body(hyper::Body::from(endpoint.body.clone()))
                 .unwrap(),
@@ -151,6 +152,7 @@ async fn generate_request(
             hyper::Request::builder()
                 .method(hyper::Method::POST)
                 .uri(dest)
+                .header("Content-Type", "text/plain")
                 .body(hyper::Body::from(endpoint.body.clone()))
                 .unwrap(),
         ),

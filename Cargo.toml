@@ -1,6 +1,6 @@
 [package]
 name = "rs-schedule-server"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Daniel Smith <daniel@smitbo.com>"]
 edition = "2018"
 
@@ -10,5 +10,5 @@ futures = "0.3"
 tokio = {version = "0.2", features = ["full"]}
 serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
-url = "1.0"
-chrono = "0.4.6"
+url = "2.1"
+chrono = "0.4"
