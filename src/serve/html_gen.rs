@@ -66,3 +66,11 @@ pub fn html_future_ok(body: String, status: hyper::StatusCode) -> BoxFut {
             .unwrap(),
     ))
 }
+
+pub fn excess_content_length_response() -> BoxFut {
+    html_future_ok(String::from("<h1>Bad Request</h1><p>The request Content-Length header size exceeded the allowed limit.</p><a href=\"/index/\">Return to main page</a>"), hyper::StatusCode::BAD_REQUEST)
+}
+
+pub fn bad_request() -> BoxFut {
+    html_future_ok(String::from("<h1>Bad Request</h1><p>The request was badly formed or cannot be completed.</p><a href=\"/index/\">Return to main page</a>"), hyper::StatusCode::BAD_REQUEST)
+}

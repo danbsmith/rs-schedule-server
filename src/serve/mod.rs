@@ -1,9 +1,9 @@
 mod actions;
 mod html_gen;
 
-use crate::schedule::*;
-use crate::BoxFut;
+use crate::{schedule::*, BoxFut};
 use html_gen::*;
+use hyper::header::CONTENT_LENGTH;
 use hyper::{Body, Request, StatusCode};
 
 pub fn web(
@@ -11,6 +11,24 @@ pub fn web(
     schedules: &std::sync::Arc<std::sync::Mutex<std::vec::Vec<Schedule>>>,
     filepath: String,
 ) -> BoxFut {
+    if let Some(contentlength) = req.headers().get(CONTENT_LENGTH) {
+        if let Ok(contentlength) = contentlength.to_str() {
+            if let Ok(contentlength) = contentlength.parse::<usize>() {
+                if contentlength > crate::REQUEST_LENGTH_LIMIT {
+                    return excess_content_length_response();
+                }
+            }
+            else {
+                return bad_request()
+            }
+        }
+        else {
+            return bad_request()
+        }
+    }
+    else {
+        return bad_request()
+    }
     match (req.method(), req.uri().path()) {
         (&hyper::Method::GET, "/index/") => {
             return gen_main_page(schedules.lock().unwrap().as_ref());

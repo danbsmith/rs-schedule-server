@@ -28,6 +28,8 @@ static DAY_NAMES: [&str; 7] = [
     "Sunday",
 ];
 
+const REQUEST_LENGTH_LIMIT: usize = 1000000;
+
 type BoxFut = Pin<Box<dyn Future<Output = Response<Body>> + Send>>;
 //type BoxFut = Response<Body>;
 #[tokio::main]
